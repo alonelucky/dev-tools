@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1,shrink-to-fit=no">
+    <title>JSON to Go Map</title>
+    <link href="./json2go.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://highlightjs.org/static/demo/styles/default.css">
+    <style>
+        .result-panel {
+            height: 90%;
+        }
+        div.text-box {
+            padding: 0;
+        }
+        div.text-box pre {
+            margin: 0;
+        }
+    </style>
+    <script src="json2go.js"></script>
+    <script>
+        function covert2go() {
+            let opts = {
+                tomap: document.querySelector('#ToMap').checked,
+                newmap: document.querySelector('#NewFromMap').checked,
+                marshal: document.querySelector('#MarshalJSON').checked,
+            }
+            localStorage.setItem("opts", JSON.stringify(opts));
+            var text = "";
+            try {
+                text = json2go(JSON.parse(document.querySelector('#json').value), "AutoGen", 0, opts);
+            } catch (e) {
+                text = e.toString();
+            }
+            document.querySelector('#go pre').innerHTML = `<code class="language-go">${gofmt ? gofmt(text).replace(/\t/g, '    ') : text}</code>`;
+            hljs && hljs.highlightAll();
+        }
+
+        document.addEventListener('keyup', (e) => {
+            if (e.target.id !== "json") return;
+            covert2go();
+        });
+
+        document.addEventListener('click', (e) => {
+            if (e.target.id !== "ToMap" &&
+                e.target.id !== "NewFromMap" &&
+                e.target.id !== "MarshalJSON") return;
+            covert2go();
+        });
+
+        window.onload = function () {
+            var json = localStorage.getItem("opts");
+            if (!json) return;
+            try {
+                var opts = JSON.parse(json);
+                document.querySelector('#ToMap').checked = opts.tomap;
+                document.querySelector('#NewFromMap').checked = opts.newmap;
+                document.querySelector('#MarshalJSON').checked = opts.marshal;
+            } catch (e) { }
+        }
+    </script>
+    <script src="./gofmt.js"></script>
+</head>
+
+<body>
+    <div id="root">
+        <main data-reactroot="" class="main-content">
+            <header>
+                <div class="info-editor grid text-center">
+                    <div class="col-5">JSON</div>
+                    <div class="col-2 xl">→</div>
+                    <div class="col-5">Go&nbsp;&nbsp;
+                        <input type="checkbox" checked name="NewFromMap" id="NewFromMap">NewFromMap
+                        <input type="checkbox" checked name="ToMap" id="ToMap">ToMap
+                        <input type="checkbox" checked name="MarshalJSON" id="MarshalJSON">MarshalJSON
+                    </div>
+                </div>
+            </header>
+            <div class="result-panel">
+                <textarea placeholder="Paste your JSON here" id="json" class="text-box"></textarea>
+                <div placeholder="Show go code" id="go" class="text-box">
+                    <pre></pre>
+                </div>
+            </div>
+            <footer class="text-center">© 2022 • <a href="http://">View on GitHub</a> • <a
+                    href="https://mholt.github.io/json-to-go/">JSON2GO</a> </footer>
+        </main>
+    </div>
+</body>
+<script src="https://highlightjs.org/static/highlight.min.js"></script>
+<script>hljs.highlightAll();</script>
+</html>
