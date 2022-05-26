@@ -26,10 +26,12 @@
                 newmap: document.querySelector('#NewFromMap').checked,
                 marshal: document.querySelector('#MarshalJSON').checked,
             }
+            let name = document.querySelector('#name').value;
             localStorage.setItem("opts", JSON.stringify(opts));
+            localStorage.setItem("name", name);
             var text = "";
             try {
-                text = json2go(JSON.parse(document.querySelector('#json').value), "AutoGen", 0, opts);
+                text = json2go(JSON.parse(document.querySelector('#json').value), name || "AutoGen", 0, opts);
             } catch (e) {
                 text = e.toString();
             }
@@ -38,7 +40,7 @@
         }
 
         document.addEventListener('keyup', (e) => {
-            if (e.target.id !== "json") return;
+            if (e.target.id !== "json" && e.target.id !== "name") return;
             covert2go();
         });
 
@@ -51,6 +53,7 @@
 
         window.onload = function () {
             var json = localStorage.getItem("opts");
+            document.querySelector('#name').value = localStorage.getItem("name") || "AutoGen";
             if (!json) return;
             try {
                 var opts = JSON.parse(json);
@@ -68,7 +71,9 @@
         <main data-reactroot="" class="main-content">
             <header>
                 <div class="info-editor grid text-center">
-                    <div class="col-5">JSON</div>
+                    <div class="col-5">JSON&nbsp;&nbsp;
+                        <input type="text" id="name" value=""/>
+                    </div>
                     <div class="col-2 xl">→</div>
                     <div class="col-5">Go&nbsp;&nbsp;
                         <input type="checkbox" checked name="NewFromMap" id="NewFromMap">NewFromMap
