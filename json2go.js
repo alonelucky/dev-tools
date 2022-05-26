@@ -83,10 +83,10 @@
                         break;
                     }
                     if (!(json[key] instanceof Array)) {
-                        arr.push(`  ${formatKey(currentKey + '_' + key)} ${key} \`json:"${key}"\``);
-                        mapArr.push(`  result.${formatKey(currentKey + '_' + key)} = New${key}FromMap(data["${key}"].(map[string]interface{}))`);
-                        toMapArr.push(`  data["${key}"] = result.${formatKey(currentKey + '_' + key)}.ToMap()`);
-                        MarshalJSON.push(`  v${formatKey(key)}, _ := result.${formatKey(currentKey + '_' + key)}.MarshalJSON()
+                        arr.push(`  ${formatKey(key)} ${formatKey(currentKey + '_' + key)} \`json:"${key}"\``);
+                        mapArr.push(`  result.${formatKey(key)} = New${formatKey(currentKey + '_' + key)}FromMap(data["${key}"].(map[string]interface{}))`);
+                        toMapArr.push(`  data["${key}"] = result.${formatKey(key)}.ToMap()`);
+                        MarshalJSON.push(`  v${formatKey(key)}, _ := result.${formatKey(key)}.MarshalJSON()
   bd.WriteString(\`${MarshalJSON.length > 1 ? ',' : ''}"${key}": \`)
   bd.Write(v${formatKey(key)})`)
                         covert(json[key], formatKey(currentKey + '_' + key), depth++)
@@ -145,7 +145,7 @@
   bd.WriteByte(']')`);
                         break;
                     } else if (tp == 'object' && !(json[key][0] instanceof Array)) {
-                        arr.push(`  ${formatKey(key)} []${key} \`json:"${key}"\``);
+                        arr.push(`  ${formatKey(key)} []${formatKey(key)} \`json:"${key}"\``);
                         mapArr.push(`  for _, v := range data["${key}"].([]interface{}) {
     result.${formatKey(key)} = append(result.${formatKey(key)}, New${key}FromMap(v.(map[string]interface{})))
   }`);
