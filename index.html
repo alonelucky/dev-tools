@@ -39,12 +39,18 @@
             hljs && hljs.highlightAll();
         }
 
+        function copy(){
+            if(!navigator || !navigator.clipboard) return;
+            navigator.clipboard.writeText(document.querySelector('#go').innerText);
+        }
+
         document.addEventListener('keyup', (e) => {
             if (e.target.id !== "json" && e.target.id !== "name") return;
             covert2go();
         });
 
         document.addEventListener('click', (e) => {
+            if (e.target.id == "copy") return copy();
             if (e.target.id !== "ToMap" &&
                 e.target.id !== "NewFromMap" &&
                 e.target.id !== "MarshalJSON") return;
@@ -74,7 +80,7 @@
                     <div class="col-5">JSON&nbsp;&nbsp;
                         <input type="text" id="name" value=""/>
                     </div>
-                    <div class="col-2 xl">→</div>
+                    <div class="col-2 xl"><button id="copy">Copy</button></div>
                     <div class="col-5">Go&nbsp;&nbsp;
                         <input type="checkbox" checked name="NewFromMap" id="NewFromMap">NewFromMap
                         <input type="checkbox" checked name="ToMap" id="ToMap">ToMap
