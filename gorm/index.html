@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1,shrink-to-fit=no">
+    <title>Covert to Gorm</title>
+    <link href="../json2go/json2go.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://highlightjs.org/static/demo/styles/default.css">
+    <style>
+        .result-panel {
+            height: 90%;
+        }
+        div.text-box {
+            padding: 0;
+        }
+        div.text-box pre {
+            margin: 0;
+        }
+    </style>
+    <script src="../common.js"></script>
+    <script src="../gofmt.js"></script>
+    <script src="gorm.js"></script>
+    <script src="ddl.js"></script>
+    <script>
+        function covert2gorm() {
+            var text = "";
+            try {
+                var info = parseSQL(document.querySelector('#json').value);
+                console.log(info);
+                text = gormGen(info);
+            } catch (e) {
+                text = e.toString();
+            }
+            document.querySelector('#go pre').innerHTML = `<code class="language-go">${gofmt ? gofmt(text).replace(/\t/g, '    ') : text}</code>`;
+            hljs && hljs.highlightAll();
+        }
+
+        function copy(){
+            if(!navigator || !navigator.clipboard) return;
+            navigator.clipboard.writeText(document.querySelector('#go').innerText);
+        }
+
+        document.addEventListener('keyup', (e) => {
+            if (e.target.id !== "json" && e.target.id !== "name") return;
+            covert2gorm();
+        });
+
+        document.addEventListener('click', (e) => {
+            if(e.target.id === "copy") copy();
+        });
+
+        window.onload = function () {
+            
+        }
+    </script>
+</head>
+
+<body>
+    <div id="root">
+        <main data-reactroot="" class="main-content">
+            <header>
+                <div class="info-editor grid text-center">
+                    <div class="col-5">SQL</div>
+                    <div class="col-2 xl"><button id="copy">Copy</button></div>
+                    <div class="col-5">Go</div>
+                </div>
+            </header>
+            <div class="result-panel">
+                <textarea placeholder="Paste your JSON here" id="json" class="text-box"></textarea>
+                <div placeholder="Show go code" id="go" class="text-box">
+                    <pre></pre>
+                </div>
+            </div>
+            <footer class="text-center">© 2022 • <a target="_blank" href="https://github.com/alonelucky/json2go">View on GitHub</a> • Thanks <a
+                target="_blank" href="https://mholt.github.io/json-to-go/">JSON2GO</a> • <a
+                target="_blank" href="https://rodrigo-brito.github.io/json-to-go-map/">JSON2GoMap</a></footer>
+        </main>
+    </div>
+</body>
+<script src="https://highlightjs.org/static/highlight.min.js"></script>
+<script>hljs.highlightAll();</script>
+</html>
