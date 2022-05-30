@@ -24,6 +24,7 @@
     }
 
     this.gormGen = function(info) {
+        var primaryKeyType = covertType(info.columns.filter(v => info.primaryKey.includes(v.name))[0].type || '');
         return `type ${formatKey(info.tableName)} struct {
     ${info.columns.map(v => `${formatKey(v.name)} ${covertType(v.type)} \`gorm:"colum:${v.name}" json:"${v.name}"\` // ${v.comment}`).join('\n')}
 }
@@ -44,22 +45,26 @@ func (${formatKey(info.tableName)}Dao) New(tx *gorm.DB, item *${formatKey(info.t
 }
 
 // FindByPK Find unique information by primary key
-func (${formatKey(info.tableName)}Dao) FindByPK(tx *gorm.DB, pk ${covertType(info.columns.filter(v => info.primaryKey.includes(v.name))[0].type)}) (item *${formatKey(info.tableName)}, e error) {
+func (${formatKey(info.tableName)}Dao) FindByPK(tx *gorm.DB, ${info.columns.filter(v => info.primaryKey.includes(v.name)).map(v => `${formatKey(v.name)} ${covertType(v.type)}`).join(',')}) (item *${formatKey(info.tableName)}, e error) {
     item = &${formatKey(info.tableName)}{}
-    e = tx.Model(item).Where("${info.primaryKey}", pk).Limit(1).Find(item).Error
+    e = tx.Model(item).Where(${info.primaryKey.length > 1 ? `map[string]interface{}{
+        ${info.primaryKey.map(v => `"${v}": ${formatKey(v)},`).join('\n')}
+    }` : `"${info.primaryKey[0]}", ${formatKey(info.primaryKey[0])}`}).Limit(1).Find(item).Error
     return
 }
 
 // FindOne Find one information by any
 func (${formatKey(info.tableName)}Dao) FindOne(tx *gorm.DB, column string, value interface{}) (item *${formatKey(info.tableName)}, e error) {
     item = &${formatKey(info.tableName)}{}
-    e = tx.Model(item).Where(column, value).Limit(1).Order("pk desc").Find(item).Error
+    e = tx.Model(item).Where(column, value).Limit(1).Order("${info.primaryKey} desc").Find(item).Error
     return
 }
 
 // Update Update fields according to map
-func (${formatKey(info.tableName)}Dao) Update(tx *gorm.DB, pk interface{}, data map[string]interface{}) (e error) {
-    e = tx.Model(&${formatKey(info.tableName)}{}).Where("", pk).Updates(data).Error
+func (${formatKey(info.tableName)}Dao) Update(tx *gorm.DB, ${info.columns.filter(v => info.primaryKey.includes(v.name)).map(v => `${formatKey(v.name)} ${covertType(v.type)}`).join(',')}, data map[string]interface{}) (e error) {
+    e = tx.Model(&${formatKey(info.tableName)}{}).Where(${info.primaryKey.length > 1 ? `map[string]interface{}{
+        ${info.primaryKey.map(v => `"${v}": ${formatKey(v)},`).join('\n')}
+    }` : `"${info.primaryKey[0]}", ${formatKey(info.primaryKey[0])}`}).Updates(data).Error
     return
 }
 
@@ -70,8 +75,10 @@ func (${formatKey(info.tableName)}Dao) UpdateTableName(tx *gorm.DB, item *${form
 }
 
 // Delete delete data from table.
-func (${formatKey(info.tableName)}Dao) Delete(tx *gorm.DB, pk interface{}) (e error) {
-    e = tx.Delete(&${formatKey(info.tableName)}{PK: pk}).Error
+func (${formatKey(info.tableName)}Dao) Delete(tx *gorm.DB, ${info.columns.filter(v => info.primaryKey.includes(v.name)).map(v => `${formatKey(v.name)} ${covertType(v.type)}`).join(',')}) (e error) {
+    e = tx.Where(${info.primaryKey.length > 1 ? `map[string]interface{}{
+        ${info.primaryKey.map(v => `"${v}": ${formatKey(v)},`).join('\n')}
+    }` : `"${info.primaryKey[0]}", ${formatKey(info.primaryKey[0])}`}).Delete(&${formatKey(info.tableName)}{}).Error
     return
 }
 

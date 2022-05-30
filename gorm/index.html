@@ -25,13 +25,15 @@
     <script>
         function covert2gorm() {
             var text = "";
-            try {
+            // try {
                 var info = parseSQL(document.querySelector('#json').value);
                 console.log(info);
                 text = gormGen(info);
-            } catch (e) {
-                text = e.toString();
-            }
+                console.log(text)
+            // } catch (e) {
+            //     throw e;
+            //     text = e.toString();
+            // }
             document.querySelector('#go pre').innerHTML = `<code class="language-go">${gofmt ? gofmt(text).replace(/\t/g, '    ') : text}</code>`;
             hljs && hljs.highlightAll();
         }
@@ -63,16 +65,21 @@
                 <div class="info-editor grid text-center">
                     <div class="col-5">SQL</div>
                     <div class="col-2 xl"><button id="copy">Copy</button></div>
-                    <div class="col-5">Go</div>
+                    <div class="col-5">
+                        <select name="type" id="type">
+                            <option value="gorm">gorm</option>
+                            <option value="sequelize">sequelize</option>
+                        </select>
+                    </div>
                 </div>
             </header>
             <div class="result-panel">
-                <textarea placeholder="Paste your JSON here" id="json" class="text-box"></textarea>
+                <textarea placeholder="Paste your Create SQL here" id="json" class="text-box"></textarea>
                 <div placeholder="Show go code" id="go" class="text-box">
                     <pre></pre>
                 </div>
             </div>
-            <footer class="text-center">© 2022 • <a target="_blank" href="https://github.com/alonelucky/json2go">View on GitHub</a> • Thanks <a
+            <footer class="text-center">© 2022 • <a target="_blank" href="https://github.com/alonelucky/dev-tools">View on GitHub</a> • Thanks <a
                 target="_blank" href="https://mholt.github.io/json-to-go/">JSON2GO</a> • <a
                 target="_blank" href="https://rodrigo-brito.github.io/json-to-go-map/">JSON2GoMap</a></footer>
         </main>
