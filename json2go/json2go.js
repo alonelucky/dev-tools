@@ -16,19 +16,26 @@
             switch (typeof json[key]) {
                 case 'string':
                     arr.push(`  ${formatKey(key)} string \`json:"${key}"\``);
-                    mapArr.push(`  result.${formatKey(key)} = data["${key}"].(string)`);
+                    mapArr.push(`  result.${formatKey(key)},_ = data["${key}"].(string)`);
                     toMapArr.push(`  data["${key}"] = result.${formatKey(key)}`);
                     MarshalJSON.push(`  bd.WriteString(fmt.Sprintf(\`${MarshalJSON.length > 1 ? ',' : ''}"${key}": "%v"\`, result.${formatKey(key)}))`)
                     break;
                 case 'boolean':
                     arr.push(`  ${formatKey(key)} bool \`json:"${key}"\``);
-                    mapArr.push(`  result.${formatKey(key)} = data["${key}"].(bool)`);
+                    mapArr.push(`  result.${formatKey(key)},_ = data["${key}"].(bool)`);
                     toMapArr.push(`  data["${key}"] = result.${formatKey(key)}`);
                     MarshalJSON.push(`  bd.WriteString(fmt.Sprintf(\`${MarshalJSON.length > 1 ? ',' : ''}"${key}": %v\`, result.${formatKey(key)}))`)
                     break;
                 case 'number':
+                  if (json[key]%1 == 0) {
+                    arr.push(`  ${formatKey(key)} int64 \`json:"${key}"\``);
+                    mapArr.push(`  result.${formatKey(key)},_ = data["${key}"].(int64)`);
+                    toMapArr.push(`  data["${key}"] = result.${formatKey(key)}`);
+                    MarshalJSON.push(`  bd.WriteString(fmt.Sprintf(\`${MarshalJSON.length > 1 ? ',' : ''}"${key}": %v\`, result.${formatKey(key)}))`)
+                    break;
+                  }
                     arr.push(`  ${formatKey(key)} float64 \`json:"${key}"\``);
-                    mapArr.push(`  result.${formatKey(key)} = data["${key}"].(float64)`);
+                    mapArr.push(`  result.${formatKey(key)},_ = data["${key}"].(float64)`);
                     toMapArr.push(`  data["${key}"] = result.${formatKey(key)}`);
                     MarshalJSON.push(`  bd.WriteString(fmt.Sprintf(\`${MarshalJSON.length > 1 ? ',' : ''}"${key}": %v\`, result.${formatKey(key)}))`)
                     break;
@@ -53,7 +60,8 @@
                     var tp = typeof json[key][0];
                     if (tp == 'string') {
                         arr.push(`  ${formatKey(key)} []string \`json:"${key}"\``);
-                        mapArr.push(`  for _, v := range data["${key}"].([]interface{}) {
+                        mapArr.push(`  ${key}lst, _ := data["${key}"].([]interface{})
+                        for _, v := range ${key}lst {
     result.${formatKey(key)} = append(result.${formatKey(key)}, v.(string))
   }`);
                         toMapArr.push(`  arr${formatKey(key)} := make([]interface{}, len(result.${formatKey(key)}))
@@ -70,7 +78,8 @@
                         break;
                     } else if (tp == 'boolean') {
                         arr.push(`  ${formatKey(key)} []bool \`json:"${key}"\``);
-                        mapArr.push(`  for k, v := range data["${key}"].([]interface{}) {
+                        mapArr.push(`  ${key}lst, _ := data["${key}"].([]interface{})
+                for k, v := range ${key}lst {
     result.${formatKey(key)} = append(result.${formatKey(key)}, v.(bool))
   }`);
                         toMapArr.push(`  data["${key}"] = make([]interface{}, len(result.${formatKey(key)}))
@@ -85,8 +94,28 @@
   bd.WriteByte(']')`);
                         break;
                     } else if (tp == 'number') {
+                        if(json[key][0]%1 == 0) {
+                          arr.push(`  ${formatKey(key)} []int64 \`json:"${key}"\``);
+                          mapArr.push(` ${key}lst, _ := data["${key}"].([]interface{})
+  for _, v := range ${key}lst {
+      result.${formatKey(key)} = append(result.${formatKey(key)}, v.(int64))
+  }`);
+                          toMapArr.push(`  arr${formatKey(key)} := make([]interface{}, len(result.${formatKey(key)}))
+    for k := range result.${formatKey(key)} {
+      arr${formatKey(key)}[k] = result.${formatKey(key)}[k]
+    }
+    data["${key}"] = arr${formatKey(key)}`);
+                          MarshalJSON.push(`  bd.WriteString(\`${MarshalJSON.length > 1 ? ',' : ''}"${key}": \`)
+    bd.WriteByte('[')
+    for k := range result.${formatKey(key)} {
+      bd.WriteString(fmt.Sprintf(\`,%v\`, result.${formatKey(key)}[k]))
+    }
+    bd.WriteByte(']')`);
+    break;
+                        }
                         arr.push(`  ${formatKey(key)} []float64 \`json:"${key}"\``);
-                        mapArr.push(`  for _, v := range data["${key}"].([]interface{}) {
+                        mapArr.push(` ${key}lst, _ := data["${key}"].([]interface{})
+for _, v := range ${key}lst {
     result.${formatKey(key)} = append(result.${formatKey(key)}, v.(float64))
 }`);
                         toMapArr.push(`  arr${formatKey(key)} := make([]interface{}, len(result.${formatKey(key)}))
@@ -103,8 +132,9 @@
                         break;
                     } else if (tp == 'object' && !(json[key][0] instanceof Array)) {
                         arr.push(`  ${formatKey(key)} []${formatKey(key)} \`json:"${key}"\``);
-                        mapArr.push(`  for _, v := range data["${key}"].([]interface{}) {
-    result.${formatKey(key)} = append(result.${formatKey(key)}, New${key}FromMap(v.(map[string]interface{})))
+                        mapArr.push(`  ${key}lst, _ := data["${key}"].([]interface{})
+                        for _, v := range ${key}lst {
+    result.${formatKey(key)} = append(result.${formatKey(key)}, New${formatKey(key)}FromMap(v.(map[string]interface{})))
   }`);
                         toMapArr.push(`  arr${formatKey(key)} := make([]interface{}, len(result.${formatKey(key)}))
   for k := range result.${formatKey(key)} {
